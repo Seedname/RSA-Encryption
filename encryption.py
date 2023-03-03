@@ -1,11 +1,12 @@
-import math
 import random
+# 1024-bit RSA Encryption
 
 def stringToInt(string):
     integer = ""
     for char in string:
         integer += str(ord(char)).zfill(3)
     return int(integer)
+
 def intToString(num):
     plaintext = ""
     
@@ -26,23 +27,14 @@ def modInverse(A, M):
         return 0
  
     while (A > 1):
- 
-        # q is quotient
         q = A // M
- 
         t = M
- 
-        # m is remainder now, process
-        # same as Euclid's algo
         M = A % M
         A = t
         t = y
- 
-        # Update x and y
         y = x - q * y
         x = t
- 
-    # Make x positive
+
     if (x < 0):
         x = x + m0
  
@@ -50,12 +42,10 @@ def modInverse(A, M):
 def isPrime(n, k=5):
     if n < 2:
         return False
-    # Write n-1 as 2^r * d
     r, d = 0, n-1
     while d % 2 == 0:
         r += 1
         d //= 2
-    # Test primality with k random values of a
     for i in range(k):
         a = random.randint(2, n-2)
         x = pow(a, d, n)
@@ -101,14 +91,6 @@ class Person:
         self.totient = (self.p-1) * (self.q-1)
 
         self.e = (1 << 16) + 1
-
-        # if self.e > self.n:
-        #     while True:
-        #         num = randomNum(digits-1)
-        #         if isPrime(num):
-        #             self.e = num
-        #             break
-
         self.d = modInverse(self.e, self.totient)
 
         self.public = (self.e, self.n)
@@ -123,12 +105,12 @@ class Person:
         M = exp(message, self.private[0], self.private[1])
         return intToString(M)
     
-digitsForN = 100
+digitsForN = 154
 alice = Person(digitsForN)
 bob = Person(digitsForN)
 eve = Person(digitsForN)
 
-message = "this is RSA encryption"
+message = "encrypted message"
 
 if (len(message) > int(2*digitsForN/3)):
     print("Message too long, will not encrypt properly\n")
