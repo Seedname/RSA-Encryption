@@ -6,10 +6,6 @@ def stringToInt(string):
     for char in string:
         integer += str(ord(char)).zfill(3)
     return int(integer)
-    # binary = ""
-    # for char in string:
-    #     binary += bin(ord(char))[2:].zfill(8)
-    # return int(binary, 2)
 def intToString(num):
     plaintext = ""
     
@@ -21,52 +17,6 @@ def intToString(num):
     for code in codes:
         plaintext += chr(int(code))
     return plaintext
-
-string = str(input("What message would you like to encrypt?\n"))
-integer = stringToInt(string)
-# print(integer)
-# print(intToString(integer))
-
-# Testing if it's prime with probabilites
-def isPrime(n, k=5):
-    if n < 2:
-        return False
-    # Write n-1 as 2^r * d
-    r, d = 0, n-1
-    while d % 2 == 0:
-        r += 1
-        d //= 2
-    # Test primality with k random values of a
-    for i in range(k):
-        a = random.randint(2, n-2)
-        x = pow(a, d, n)
-        if x == 1 or x == n-1:
-            continue
-        for j in range(r-1):
-            x = pow(x, 2, n)
-            if x == n-1:
-                break
-        else:
-            return False
-    return True
-
-# Bad version of prime number checking
-# def isPrime(n):
-#     if n > 1:
-#         for i in range(2, int(math.sqrt(n))):
-#             if n % i == 0: return False
-#         return True
-#     return False
-
-# Just generates a range of primes
-# def primeRange(n, m, max):
-#     primes = []
-#     for i in range(n, m):
-#         if isPrime(i): primes.append(i)
-#         if len(primes) > max: break
-#     return primes
-
-# calculates inverse multiplicative modulus if it's coprime
 def modInverse(A, M):
     m0 = M
     y = 0
@@ -97,8 +47,27 @@ def modInverse(A, M):
         x = x + m0
  
     return x
-
-# much faster method to produce modulo exponentiation
+def isPrime(n, k=5):
+    if n < 2:
+        return False
+    # Write n-1 as 2^r * d
+    r, d = 0, n-1
+    while d % 2 == 0:
+        r += 1
+        d //= 2
+    # Test primality with k random values of a
+    for i in range(k):
+        a = random.randint(2, n-2)
+        x = pow(a, d, n)
+        if x == 1 or x == n-1:
+            continue
+        for j in range(r-1):
+            x = pow(x, 2, n)
+            if x == n-1:
+                break
+        else:
+            return False
+    return True
 def exp(a, m, n):
     result = 1
     for i in bin(m)[2:]:
@@ -106,58 +75,63 @@ def exp(a, m, n):
         if i == '1':
             result = (result * a) % n
     return result
-
-# generates a random integer depending on how many digits you use
 def randomNum(digits):
     num = str(random.randint(1, 9))
     for i in range(digits-1):
         num += str(random.randint(0, 9))
     return int(num)
 
-digits = max(3, int(math.log10(integer)))
 
-p = 0
-q = 0
+class Person:
+    def __init__(self):
+        self.p = 0
+        self.q = 0
+        digits = 12
 
-# generate random prime number p
-while True:
-    p1 = randomNum(digits)
-    if isPrime(p1):
-        p = p1
-        break
+        while True:
+            p1 = randomNum(digits)
+            if isPrime(p1):
+                self.p = p1
+                break
+        while True:
+            q1 = randomNum(digits)
+            if isPrime(q1):
+                self.q = q1
+                break
 
-# generate random prime number q
-while True:
-    q1 = randomNum(digits)
-    if isPrime(q1):
-        q = q1
-        break
+        self.n = self.p * self.q
+        self.totient = (self.p-1) * (self.q-1)
 
-n = p * q
-totient = (p-1) * (q-1)
+        self.e = (1 << 16) + 1
 
-e = (2 << 15) + 1
+        if self.e > self.n:
+            while True:
+                num = randomNum(digits-1)
+                if isPrime(num):
+                    self.e = num
+                    break
 
-if e > n:
-    while True:
-        num = randomNum(digits-1)
-        if isPrime(num): 
-            e = num
-            break
+        self.d = modInverse(self.e, self.totient)
 
-d = modInverse(e, totient)
+        self.public = (self.e, self.n)
+        self.private = (self.d, self.n)
 
-public = (n, e)
-private = (n, d)
+    def encrypt (self, message, public):
+        integer = stringToInt(message)
+        C = exp(integer, public[0], public[1])
+        return C
 
-C = exp(integer, e, n)
-M = exp(C, d, n)
+    def decrypt (self, message):
+        M = exp(message, self.private[0], self.private[1])
+        return intToString(M)
+    
+alice = Person()
+bob = Person()
 
-# next steps:
-# add two clients with different public and private keys
-# encrypt the message with my private and the other person's public key
-# they decrypt the message with their private and my public key
+encrypted = alice.encrypt("Hello", bob.public)
+eve = Person()
+intercepted = eve.decrypt(encrypted)
+decrypted = bob.decrypt(encrypted)
 
-print("\n\nEncrypted: " + intToString(C))
-print("Decrypted: " + intToString(M))
-
+print("Intercepted Message: " + intercepted)
+print("Decrypted Message: " + decrypted)
