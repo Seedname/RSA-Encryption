@@ -82,10 +82,9 @@ def randomNum(digits):
     return int(num)
 
 class Person:
-    def __init__(self):
+    def __init__(self, digits):
         self.p = 0
         self.q = 0
-        digits = 50
 
         while True:
             p1 = randomNum(digits)
@@ -103,12 +102,12 @@ class Person:
 
         self.e = (1 << 16) + 1
 
-        if self.e > self.n:
-            while True:
-                num = randomNum(digits-1)
-                if isPrime(num):
-                    self.e = num
-                    break
+        # if self.e > self.n:
+        #     while True:
+        #         num = randomNum(digits-1)
+        #         if isPrime(num):
+        #             self.e = num
+        #             break
 
         self.d = modInverse(self.e, self.totient)
 
@@ -124,11 +123,17 @@ class Person:
         M = exp(message, self.private[0], self.private[1])
         return intToString(M)
     
-alice = Person()
-bob = Person()
+digitsForN = 100
+alice = Person(digitsForN)
+bob = Person(digitsForN)
+eve = Person(digitsForN)
 
-encrypted = alice.encrypt("encryption", bob.public)
-eve = Person()
+message = "this is RSA encryption"
+
+if (len(message) > int(2*digitsForN/3)):
+    print("Message too long, will not encrypt properly\n")
+
+encrypted = alice.encrypt(message, bob.public)
 intercepted = eve.decrypt(encrypted)
 decrypted = bob.decrypt(encrypted)
 
