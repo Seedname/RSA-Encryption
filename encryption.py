@@ -22,7 +22,7 @@ def intToString(num):
         plaintext += chr(int(code))
     return plaintext
 
-string = "asdfasdfasdfsfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdf"
+string = str(input("What message would you like to encrypt?\n"))
 integer = stringToInt(string)
 # print(integer)
 # print(intToString(integer))
@@ -158,6 +158,6 @@ M = exp(C, d, n)
 # encrypt the message with my private and the other person's public key
 # they decrypt the message with their private and my public key
 
-print("Encrypted: " + intToString(C))
+print("\n\nEncrypted: " + intToString(C))
 print("Decrypted: " + intToString(M))
 
