@@ -81,12 +81,11 @@ def randomNum(digits):
         num += str(random.randint(0, 9))
     return int(num)
 
-
 class Person:
     def __init__(self):
         self.p = 0
         self.q = 0
-        digits = 12
+        digits = 50
 
         while True:
             p1 = randomNum(digits)
@@ -128,10 +127,11 @@ class Person:
 alice = Person()
 bob = Person()
 
-encrypted = alice.encrypt("Hello", bob.public)
+encrypted = alice.encrypt("encryption", bob.public)
 eve = Person()
 intercepted = eve.decrypt(encrypted)
 decrypted = bob.decrypt(encrypted)
 
+print("Encrypted Message: " + intToString(encrypted))
 print("Intercepted Message: " + intercepted)
 print("Decrypted Message: " + decrypted)
