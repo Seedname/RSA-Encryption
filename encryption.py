@@ -1,22 +1,20 @@
+from os import urandom
 import random
+
 # 1024-bit RSA Encryption
 
 def stringToInt(string):
-    integer = ""
+    integer = 0
     for char in string:
-        integer += str(ord(char)).zfill(3)
-    return int(integer)
-
+        integer = integer * 128 + ord(char)
+    return integer
 def intToString(num):
     plaintext = ""
-    
-    string = str(num)
-    length = len(string)
-    string = string.zfill(length + 3 - length % 3)
-    codes = [string[i:i+3] for i in range(0, len(string), 3)]
-
-    for code in codes:
-        plaintext += chr(int(code))
+    encoded = num
+    while encoded > 0:
+        char = encoded % 128
+        plaintext = chr(char) + plaintext
+        encoded //= 128
     return plaintext
 def modInverse(A, M):
     m0 = M
@@ -39,7 +37,15 @@ def modInverse(A, M):
         x = x + m0
  
     return x
-def isPrime(n, k=5):
+def exp(a, m, n):
+    result = 1
+    for i in bin(m)[2:]:
+        result = (result * result) % n
+        if i == '1':
+            result = (result * a) % n
+    return result
+def isPrime(n):
+    k = 5
     if n < 2:
         return False
     r, d = 0, n-1
@@ -48,44 +54,34 @@ def isPrime(n, k=5):
         d //= 2
     for i in range(k):
         a = random.randint(2, n-2)
-        x = pow(a, d, n)
+        x = exp(a, d, n)
         if x == 1 or x == n-1:
             continue
         for j in range(r-1):
-            x = pow(x, 2, n)
+            x = exp (x, 2, n)
             if x == n-1:
                 break
         else:
             return False
     return True
-def exp(a, m, n):
-    result = 1
-    for i in bin(m)[2:]:
-        result = (result * result) % n
-        if i == '1':
-            result = (result * a) % n
-    return result
-def randomNum(digits):
-    num = str(random.randint(1, 9))
-    for i in range(digits-1):
-        num += str(random.randint(0, 9))
-    return int(num)
 
 class Person:
-    def __init__(self, digits):
+    def __init__(self, numBits):
         self.p = 0
         self.q = 0
 
         while True:
-            p1 = randomNum(digits)
+            p1 = int.from_bytes(urandom(numBits//8))
             if isPrime(p1):
                 self.p = p1
                 break
+
         while True:
-            q1 = randomNum(digits)
+            q1 = int.from_bytes(urandom(numBits//8))
             if isPrime(q1):
                 self.q = q1
                 break
+
 
         self.n = self.p * self.q
         self.totient = (self.p-1) * (self.q-1)
@@ -105,20 +101,22 @@ class Person:
         M = exp(message, self.private[0], self.private[1])
         return intToString(M)
     
-digitsForN = 154
-alice = Person(digitsForN)
-bob = Person(digitsForN)
-eve = Person(digitsForN)
+numBits = 128
+alice = Person(numBits)
+bob = Person(numBits)
+eve = Person(numBits)
 
-message = "encrypted message"
+message = "this is the message"
 
-if (len(message) > int(2*digitsForN/3)):
-    print("Message too long, will not encrypt properly\n")
+message_length = stringToInt(message).bit_length()
+if (message_length >= 2*numBits):
+    print("Message too long, will most likely not encrypt properly\n")
 
 encrypted = alice.encrypt(message, bob.public)
 intercepted = eve.decrypt(encrypted)
 decrypted = bob.decrypt(encrypted)
 
+# print(stringToInt("hello world"))
 print("Encrypted Message: " + intToString(encrypted))
 print("Intercepted Message: " + intercepted)
 print("Decrypted Message: " + decrypted)
